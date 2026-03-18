@@ -3,6 +3,14 @@ using Nop.Core.Configuration;
 using Nop.Core.Infrastructure;
 using Nop.Web.Framework.Infrastructure.Extensions;
 
+using OpenTelemetry;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Instrumentation.AspNetCore;
+using OpenTelemetry.Instrumentation.Http;
+using OpenTelemetry.Instrumentation.Runtime;
+
 namespace Nop.Web;
 
 public partial class Program
@@ -40,6 +48,26 @@ public partial class Program
 
         //add services to the application and configure service provider
         builder.Services.ConfigureApplicationServices(builder);
+
+        builder.Services.AddOpenTelemetry()
+            .WithTracing(t =>
+            {
+                t.AddAspNetCoreInstrumentation()
+                 .AddHttpClientInstrumentation()
+                 .AddOtlpExporter(o =>
+                 {
+                     o.Endpoint = new Uri("http://localhost:4317");
+                 });
+            })
+            .WithMetrics(m =>
+            {
+                m.AddAspNetCoreInstrumentation()
+                 .AddRuntimeInstrumentation()
+                 .AddOtlpExporter(o =>
+                 {
+                     o.Endpoint = new Uri("http://localhost:4317");
+                 });
+            });
 
         var app = builder.Build();
 
