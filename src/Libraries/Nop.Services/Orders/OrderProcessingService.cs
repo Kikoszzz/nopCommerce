@@ -42,7 +42,7 @@ namespace Nop.Services.Orders;
 public partial class OrderProcessingService : IOrderProcessingService
 {
     // TEST ONLY: define false para reativar o cooldown entre pedidos.
-    private const bool DisableOrderCooldownForTests = true;
+    private const bool DisableOrderCooldownForTests = false;
 
     #region Fields
 
@@ -1716,12 +1716,15 @@ public partial class OrderProcessingService : IOrderProcessingService
                 }
                 else
                 {
+                    const string paymentFailureMessage = "Payment processing failed";
                     _checkoutOrderFailuresTotal.Add(
                         1,
                         new[]
                         {
                             new KeyValuePair<string, object>("reason", "payment_failed")
                         });
+
+                    rootActivity?.SetStatus(ActivityStatusCode.Error, paymentFailureMessage);
 
                     foreach (var paymentError in processPaymentResult.Errors)
                     {
@@ -1785,13 +1788,15 @@ public partial class OrderProcessingService : IOrderProcessingService
             if (exist && !DisableOrderCooldownForTests)
             {
                 result = new PlaceOrderResult();
-                result.Errors.Add(_localizationService.GetResourceAsync("Checkout.MinOrderPlacementInterval").Result);
+                var errorMessage = _localizationService.GetResourceAsync("Checkout.MinOrderPlacementInterval").Result;
+                result.Errors.Add(errorMessage);
                 _checkoutOrderFailuresTotal.Add(
                     1,
                     new[]
                     {
                         new KeyValuePair<string, object>("reason", "min_interval_blocked")
                     });
+                rootActivity?.SetStatus(ActivityStatusCode.Error, errorMessage);
             }
             else
             {

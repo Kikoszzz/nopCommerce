@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.Metrics;
+﻿using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Nop.Core;
@@ -67,6 +68,7 @@ public partial class CheckoutController : BasePublicController
     protected readonly ShippingSettings _shippingSettings;
     protected readonly TaxSettings _taxSettings;
     private static readonly string[] _separator = ["___"];
+    private static readonly ActivitySource _checkoutActivitySource = new("nopcommerce.checkout");
     private static readonly Meter CheckoutMeter = new("nopcommerce.checkout");
     private static readonly Counter<long> CheckoutOrderFailuresTotal =
         CheckoutMeter.CreateCounter<long>("checkout_order_failures_total");
@@ -1319,6 +1321,11 @@ public partial class CheckoutController : BasePublicController
             //prevent 2 orders being placed within an X seconds time frame
             if (!DisableOrderCooldownForTests && !await IsMinimumOrderPlacementIntervalValidAsync(customer))
             {
+                using var activity = _checkoutActivitySource.StartActivity("checkout.place_order", ActivityKind.Internal);
+                activity?.SetTag("checkout.success", false);
+                activity?.SetTag("checkout.failure_reason", "min_interval_blocked");
+                activity?.SetStatus(ActivityStatusCode.Error, "Minimum order placement interval blocked");
+
                 CheckoutOrderFailuresTotal.Add(
                     1,
                     new[]
@@ -2068,6 +2075,11 @@ public partial class CheckoutController : BasePublicController
                 //prevent 2 orders being placed within an X seconds time frame
                 if (!DisableOrderCooldownForTests && !await IsMinimumOrderPlacementIntervalValidAsync(customer))
                 {
+                    using var activity = _checkoutActivitySource.StartActivity("checkout.place_order", ActivityKind.Internal);
+                    activity?.SetTag("checkout.success", false);
+                    activity?.SetTag("checkout.failure_reason", "min_interval_blocked");
+                    activity?.SetStatus(ActivityStatusCode.Error, "Minimum order placement interval blocked");
+
                     CheckoutOrderFailuresTotal.Add(
                         1,
                         new[]
