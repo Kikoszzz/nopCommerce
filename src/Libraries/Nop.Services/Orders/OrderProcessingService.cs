@@ -1,4 +1,6 @@
-﻿using System.Globalization;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
+using System.Globalization;
 using Newtonsoft.Json;
 using Nop.Core;
 using Nop.Core.Caching;
@@ -39,7 +41,18 @@ namespace Nop.Services.Orders;
 /// </summary>
 public partial class OrderProcessingService : IOrderProcessingService
 {
+    // TEST ONLY: define false para reativar o cooldown entre pedidos.
+    private const bool DisableOrderCooldownForTests = true;
+
     #region Fields
+
+    // Business-flow instrumentation for "place order" checkout.
+    // NOTE: keep span attributes free of sensitive data (no PII / payment details).
+    private static readonly ActivitySource CheckoutActivitySource = new("nopcommerce.checkout");
+    private readonly Histogram<double> _checkoutPaymentDurationMsHistogram;
+    private readonly Counter<long> _checkoutOrderFailuresTotal;
+    private readonly Counter<long> _checkoutOrdersTotal;
+    private readonly Histogram<long> _checkoutOrderItemsTotal;
 
     protected readonly CurrencySettings _currencySettings;
     protected readonly IAddressService _addressService;
@@ -141,7 +154,8 @@ public partial class OrderProcessingService : IOrderProcessingService
         PaymentSettings paymentSettings,
         RewardPointsSettings rewardPointsSettings,
         ShippingSettings shippingSettings,
-        TaxSettings taxSettings)
+        TaxSettings taxSettings,
+        IMeterFactory meterFactory)
     {
         _currencySettings = currencySettings;
         _addressService = addressService;
@@ -191,6 +205,13 @@ public partial class OrderProcessingService : IOrderProcessingService
         _rewardPointsSettings = rewardPointsSettings;
         _shippingSettings = shippingSettings;
         _taxSettings = taxSettings;
+
+        // Initialize metrics from the IMeterFactory (this ensures proper linkage to MeterProvider)
+        var checkoutMeter = meterFactory.Create("nopcommerce.checkout");
+        _checkoutPaymentDurationMsHistogram = checkoutMeter.CreateHistogram<double>("checkout_payment_duration_ms");
+        _checkoutOrderFailuresTotal = checkoutMeter.CreateCounter<long>("checkout_order_failures_total");
+        _checkoutOrdersTotal = checkoutMeter.CreateCounter<long>("checkout_orders_total");
+        _checkoutOrderItemsTotal = checkoutMeter.CreateHistogram<long>("checkout_order_items_total");
     }
 
     #endregion
@@ -205,6 +226,13 @@ public partial class OrderProcessingService : IOrderProcessingService
     /// <returns>A task that represents the asynchronous operation</returns>
     protected virtual async Task BookReservedInventoryAsync(Shipment shipment, string message)
     {
+        using var activity = CheckoutActivitySource.StartActivity("checkout.inventory_reserve", ActivityKind.Internal);
+        if (activity != null)
+        {
+            activity.SetTag("shipment.id", shipment.Id);
+            activity.SetTag("order.id", shipment.OrderId);
+        }
+
         foreach (var item in await _shipmentService.GetShipmentItemsByShipmentIdAsync(shipment.Id))
         {
             var product = await _orderService.GetProductByOrderItemIdAsync(item.OrderItemId);
@@ -244,6 +272,12 @@ public partial class OrderProcessingService : IOrderProcessingService
     /// <returns>A task that represents the asynchronous operation</returns>
     protected virtual async Task ReturnOrderStockAsync(Order order, string message)
     {
+        using var activity = CheckoutActivitySource.StartActivity("checkout.inventory_return", ActivityKind.Internal);
+        if (activity != null)
+        {
+            activity.SetTag("order.id", order.Id);
+        }
+
         foreach (var orderItem in await _orderService.GetOrderItemsAsync(order.Id))
         {
             var product = await _productService.GetProductByIdAsync(orderItem.ProductId);
@@ -1571,7 +1605,16 @@ public partial class OrderProcessingService : IOrderProcessingService
         if (processPaymentRequest.OrderGuid == Guid.Empty)
             throw new Exception("Order GUID is not generated");
 
+        using var rootActivity = CheckoutActivitySource.StartActivity("checkout.place_order", ActivityKind.Internal);
+        if (rootActivity != null)
+        {
+            rootActivity.SetTag("store.id", processPaymentRequest.StoreId);
+            rootActivity.SetTag("payment.method", processPaymentRequest.PaymentMethodSystemName ?? "unknown");
+            rootActivity.SetTag("order.guid", processPaymentRequest.OrderGuid.ToString("N"));
+        }
+
         //prepare order details
+        using var prepareActivity = CheckoutActivitySource.StartActivity("checkout.prepare_place_order_details", ActivityKind.Internal);
         var details = await PreparePlaceOrderDetailsAsync(processPaymentRequest);
 
         async Task<PlaceOrderResult> placeOrder(PlaceOrderContainer placeOrderContainer)
@@ -1580,18 +1623,56 @@ public partial class OrderProcessingService : IOrderProcessingService
 
             try
             {
-                var processPaymentResult =
-                    await GetProcessPaymentResultAsync(processPaymentRequest, placeOrderContainer)
-                    ?? throw new NopException("processPaymentResult is not available");
+                var paymentMethod = processPaymentRequest.PaymentMethodSystemName ?? "unknown";
+
+                ProcessPaymentResult processPaymentResult;
+                using (CheckoutActivitySource.StartActivity("checkout.process_payment", ActivityKind.Internal))
+                {
+                    var sw = Stopwatch.StartNew();
+                    processPaymentResult = await GetProcessPaymentResultAsync(processPaymentRequest, placeOrderContainer);
+                    sw.Stop();
+
+                    _checkoutPaymentDurationMsHistogram.Record(
+                        sw.Elapsed.TotalMilliseconds,
+                        new[]
+                        {
+                            new KeyValuePair<string, object>("payment_method", paymentMethod)
+                        });
+                }
+
+                processPaymentResult = processPaymentResult ?? throw new NopException("processPaymentResult is not available");
 
                 if (processPaymentResult.Success)
                 {
-                    var order = await SaveOrderDetailsAsync(processPaymentRequest, processPaymentResult,
-                        placeOrderContainer);
+                    Order order;
+                    using (CheckoutActivitySource.StartActivity("checkout.save_order_details", ActivityKind.Internal))
+                    {
+                        order = await SaveOrderDetailsAsync(processPaymentRequest, processPaymentResult, placeOrderContainer);
+                    }
                     result.PlacedOrder = order;
 
+                    // record successful order count and item count
+                    _checkoutOrdersTotal.Add(
+                        1,
+                        new[]
+                        {
+                            new KeyValuePair<string, object>("payment_method", paymentMethod),
+                            new KeyValuePair<string, object>("store_id", order.StoreId)
+                        });
+
                     //move shopping cart items to order items
-                    await MoveShoppingCartItemsToOrderItemsAsync(placeOrderContainer, order);
+                    using (CheckoutActivitySource.StartActivity("checkout.move_cart_items_to_order_items", ActivityKind.Internal))
+                    {
+                        await MoveShoppingCartItemsToOrderItemsAsync(placeOrderContainer, order);
+                    }
+
+                    var orderItems = await _orderService.GetOrderItemsAsync(order.Id);
+                    _checkoutOrderItemsTotal.Record(
+                        orderItems.Count,
+                        new[]
+                        {
+                            new KeyValuePair<string, object>("store_id", order.StoreId)
+                        });
 
                     //discount usage history
                     await SaveDiscountUsageHistoryAsync(placeOrderContainer, order);
@@ -1614,16 +1695,34 @@ public partial class OrderProcessingService : IOrderProcessingService
                             order.Id), order);
 
                     //raise event       
-                    await _eventPublisher.PublishAsync(new OrderPlacedEvent(order));
+                    using (CheckoutActivitySource.StartActivity("checkout.publish_order_placed_event", ActivityKind.Internal))
+                    {
+                        await _eventPublisher.PublishAsync(new OrderPlacedEvent(order));
+                    }
 
                     //check order status
-                    await CheckOrderStatusAsync(order);
+                    using (CheckoutActivitySource.StartActivity("checkout.check_order_status", ActivityKind.Internal))
+                    {
+                        await CheckOrderStatusAsync(order);
+                    }
 
                     if (order.PaymentStatus == PaymentStatus.Paid)
-                        await ProcessOrderPaidAsync(order);
+                    {
+                        using (CheckoutActivitySource.StartActivity("checkout.process_order_paid", ActivityKind.Internal))
+                        {
+                            await ProcessOrderPaidAsync(order);
+                        }
+                    }
                 }
                 else
                 {
+                    _checkoutOrderFailuresTotal.Add(
+                        1,
+                        new[]
+                        {
+                            new KeyValuePair<string, object>("reason", "payment_failed")
+                        });
+
                     foreach (var paymentError in processPaymentResult.Errors)
                     {
                         result.AddError(string.Format(
@@ -1633,6 +1732,15 @@ public partial class OrderProcessingService : IOrderProcessingService
             }
             catch (Exception exc)
             {
+                _checkoutOrderFailuresTotal.Add(
+                    1,
+                    new[]
+                    {
+                        new KeyValuePair<string, object>("reason", "exception")
+                    });
+
+                rootActivity?.SetStatus(ActivityStatusCode.Error, exc.Message);
+
                 await _logger.ErrorAsync(exc.Message, exc);
                 result.AddError(exc.Message);
             }
@@ -1650,7 +1758,11 @@ public partial class OrderProcessingService : IOrderProcessingService
         }
 
         if (!_orderSettings.PlaceOrderWithLock)
-            return await placeOrder(details);
+        {
+            var res = await placeOrder(details);
+            rootActivity?.SetTag("checkout.success", res.Success);
+            return res;
+        }
 
         PlaceOrderResult result;
         var resource = details.Customer.Id.ToString();
@@ -1670,10 +1782,16 @@ public partial class OrderProcessingService : IOrderProcessingService
 
             var exist = _staticCacheManager.GetAsync(cacheKey, () => false).Result;
 
-            if (exist)
+            if (exist && !DisableOrderCooldownForTests)
             {
                 result = new PlaceOrderResult();
                 result.Errors.Add(_localizationService.GetResourceAsync("Checkout.MinOrderPlacementInterval").Result);
+                _checkoutOrderFailuresTotal.Add(
+                    1,
+                    new[]
+                    {
+                        new KeyValuePair<string, object>("reason", "min_interval_blocked")
+                    });
             }
             else
             {
@@ -1688,6 +1806,7 @@ public partial class OrderProcessingService : IOrderProcessingService
             mutex.ReleaseMutex();
         }
 
+        rootActivity?.SetTag("checkout.success", result.Success);
         return result;
     }
 

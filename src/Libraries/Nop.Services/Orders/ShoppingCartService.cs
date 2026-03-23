@@ -1,4 +1,5 @@
-﻿using System.Net;
+using System.Net;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -64,6 +65,8 @@ public partial class ShoppingCartService : IShoppingCartService
     protected readonly IWorkContext _workContext;
     protected readonly OrderSettings _orderSettings;
     protected readonly ShoppingCartSettings _shoppingCartSettings;
+
+    private static readonly ActivitySource CheckoutActivitySource = new("nopcommerce.checkout");
 
     #endregion
 
@@ -1553,6 +1556,14 @@ public partial class ShoppingCartService : IShoppingCartService
 
         ArgumentNullException.ThrowIfNull(product);
 
+        using var activity = CheckoutActivitySource.StartActivity("checkout.cart_add_item", ActivityKind.Internal);
+        if (activity != null)
+        {
+            activity.SetTag("store.id", storeId);
+            activity.SetTag("product.id", product.Id);
+            activity.SetTag("shopping_cart_type", shoppingCartType.ToString());
+        }
+
         var warnings = new List<string>();
         if (shoppingCartType == ShoppingCartType.ShoppingCart && !await _permissionService.AuthorizeAsync(StandardPermission.PublicStore.ENABLE_SHOPPING_CART, customer))
         {
@@ -1750,6 +1761,13 @@ public partial class ShoppingCartService : IShoppingCartService
         var warnings = new List<string>();
 
         var shoppingCartItem = await _sciRepository.GetByIdAsync(shoppingCartItemId, cache => default);
+
+        using var activity = CheckoutActivitySource.StartActivity("checkout.cart_update_item", ActivityKind.Internal);
+        if (activity != null)
+        {
+            activity.SetTag("store.id", shoppingCartItem?.StoreId);
+            activity.SetTag("shopping_cart_item.id", shoppingCartItemId);
+        }
 
         if (shoppingCartItem == null || shoppingCartItem.CustomerId != customer.Id)
             return warnings;

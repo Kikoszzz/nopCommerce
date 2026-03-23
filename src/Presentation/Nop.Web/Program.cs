@@ -1,8 +1,9 @@
-﻿using Autofac.Extensions.DependencyInjection;
+using Autofac.Extensions.DependencyInjection;
 using Nop.Core.Configuration;
 using Nop.Core.Infrastructure;
 using Nop.Web.Framework.Infrastructure.Extensions;
 
+using System.Diagnostics.Metrics;
 using OpenTelemetry;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Metrics;
@@ -54,6 +55,8 @@ public partial class Program
             {
                 t.AddAspNetCoreInstrumentation()
                  .AddHttpClientInstrumentation()
+                 // Custom spans from nopCommerce business flow instrumentation
+                 .AddSource("nopcommerce.checkout")
                  .AddOtlpExporter(o =>
                  {
                      o.Endpoint = new Uri("http://localhost:4317");
@@ -63,13 +66,15 @@ public partial class Program
             {
                 m.AddAspNetCoreInstrumentation()
                  .AddRuntimeInstrumentation()
+                 // Custom metrics from nopCommerce business flow instrumentation
+                 .AddMeter("nopcommerce.checkout")
                  .AddOtlpExporter(o =>
                  {
                      o.Endpoint = new Uri("http://localhost:4317");
                  });
             });
 
-        var app = builder.Build();
+        var app = builder.Build();;
 
         //configure the application HTTP request pipeline
         app.ConfigureRequestPipeline();

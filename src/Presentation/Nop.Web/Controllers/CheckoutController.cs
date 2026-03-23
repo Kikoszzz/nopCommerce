@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Diagnostics.Metrics;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Nop.Core;
 using Nop.Core.Domain.Common;
@@ -32,6 +33,9 @@ namespace Nop.Web.Controllers;
 [AutoValidateAntiforgeryToken]
 public partial class CheckoutController : BasePublicController
 {
+    // TEST ONLY: define false para reativar o cooldown entre pedidos.
+    private const bool DisableOrderCooldownForTests = true;
+
     #region Fields
 
     protected readonly AddressSettings _addressSettings;
@@ -63,6 +67,9 @@ public partial class CheckoutController : BasePublicController
     protected readonly ShippingSettings _shippingSettings;
     protected readonly TaxSettings _taxSettings;
     private static readonly string[] _separator = ["___"];
+    private static readonly Meter CheckoutMeter = new("nopcommerce.checkout");
+    private static readonly Counter<long> CheckoutOrderFailuresTotal =
+        CheckoutMeter.CreateCounter<long>("checkout_order_failures_total");
 
     #endregion
 
@@ -1310,8 +1317,17 @@ public partial class CheckoutController : BasePublicController
         try
         {
             //prevent 2 orders being placed within an X seconds time frame
-            if (!await IsMinimumOrderPlacementIntervalValidAsync(customer))
+            if (!DisableOrderCooldownForTests && !await IsMinimumOrderPlacementIntervalValidAsync(customer))
+            {
+                CheckoutOrderFailuresTotal.Add(
+                    1,
+                    new[]
+                    {
+                        new KeyValuePair<string, object>("reason", "min_interval_blocked")
+                    });
+
                 throw new Exception(await _localizationService.GetResourceAsync("Checkout.MinOrderPlacementInterval"));
+            }
 
             //place order
             var processPaymentRequest = await _orderProcessingService.GetProcessPaymentRequestAsync();
@@ -2050,8 +2066,17 @@ public partial class CheckoutController : BasePublicController
                     throw new Exception("Anonymous checkout is not allowed");
 
                 //prevent 2 orders being placed within an X seconds time frame
-                if (!await IsMinimumOrderPlacementIntervalValidAsync(customer))
+                if (!DisableOrderCooldownForTests && !await IsMinimumOrderPlacementIntervalValidAsync(customer))
+                {
+                    CheckoutOrderFailuresTotal.Add(
+                        1,
+                        new[]
+                        {
+                            new KeyValuePair<string, object>("reason", "min_interval_blocked")
+                        });
+
                     throw new Exception(await _localizationService.GetResourceAsync("Checkout.MinOrderPlacementInterval"));
+                }
 
                 //place order
                 var processPaymentRequest = await _orderProcessingService.GetProcessPaymentRequestAsync();
