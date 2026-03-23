@@ -1,0 +1,263 @@
+PS D:\GitHub\AS\nopCommerce\loadtest> .\run-demo-7min.ps1
+Iniciando demo de 2 minutos com k6...
+BASE_URL=http://localhost:5000
+USER_EMAIL=admin@email.com
+KNOWN_PROBLEM_USER=james_pan@nopCommerce.com|james_pan
+USER_CREDENTIALS=admin@email.com|admin|email;steve_gates@nopCommerce.com|steve_gates|email;arthur_holmes@nopCommerce.com|arthur_holmes|email;james_pan@nopCommerce.com|james_pan|email;brenda_lindgren@nopCommerce.com|brenda_lindgren|email;victoria_victoria@nopCommerce.com|victoria_victoria|email;
+PRODUCT_ID=21
+PAYMENT_METHOD=Payments.Manual
+PAYMENT_CARD_NUMBER=4868719196829038
+REAL_ERROR_MODE=mixed
+REAL_ERROR_EVERY_N_ITERATIONS=0
+DISABLE_ORDER_COOLDOWN_FOR_TESTS=true
+USER_CREDENTIALS_COUNT=6 | TARGET_VUS=6
+
+         /\      Grafana   /‾‾/
+    /\  /  \     |\  __   /  /
+   /  \/    \    | |/ /  /   ‾‾\
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/
+
+
+     execution: local
+        script: D:\GitHub\AS\nopCommerce\loadtest\checkout-opc.k6.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 6 max VUs, 2m20s max duration (incl. graceful stop):
+              * checkout_flow: Up to 6 looping VUs for 2m0s over 3 stages (gracefulRampDown: 20s, gracefulStop: 30s)
+
+ERRO[0020] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0022] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0028] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0034] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0034] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0036] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0040] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0042] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0046] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0047] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0047] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0049] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0053] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0055] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0059] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0061] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0061] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0063] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0066] GoError: Pedido nao confirmado: Please select Gift wrapping;
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0067] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0068] GoError: Pedido nao confirmado: Please select Gift wrapping;
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0069] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0073] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0074] GoError: Pedido nao confirmado: Please select Gift wrapping;
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0075] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0080] GoError: Pedido nao confirmado: Please select Gift wrapping;
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0081] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0082] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0084] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0086] GoError: Pedido nao confirmado: Please select Gift wrapping;
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0087] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0090] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0092] GoError: Pedido nao confirmado: Please select Gift wrapping;
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0096] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0096] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0098] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0102] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0104] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0108] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0109] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0110] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0112] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0118] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0123] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+ERRO[0125] GoError: Pedido nao confirmado: Please wait several seconds before placing a new order (already placed another order several seconds ago).
+running at go.k6.io/k6/internal/js/modules/k6.(*K6).Fail-fm (native)
+checkoutat runCheckoutOpc (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:800:9(918))
+        at default (file:///D:/GitHub/AS/nopCommerce/loadtest/checkout-opc.k6.js:816:17(39))  executor=ramping-vus scenario=checkout_flow source=stacktrace
+
+
+  █ THRESHOLDS
+
+    http_req_duration
+    ✓ 'p(95)<3000' p(95)=83.16ms
+
+    http_req_failed
+    ✓ 'rate<0.10' rate=0.00%
+
+
+  █ TOTAL RESULTS
+
+    checks_total.......: 825     6.55373/s
+    checks_succeeded...: 100.00% 825 out of 825
+    checks_failed......: 0.00%   0 out of 825
+
+    ✓ home respondeu
+    ✓ login page abriu
+    ✓ login sem erro 500
+    ✓ login concluido ou redirecionou
+    ✓ product page abriu
+    ✓ add to cart respondeu
+    ✓ onepage checkout abriu
+    ✓ OpcSaveBilling 200
+    ✓ OpcSaveShippingMethod 200
+    ✓ OpcSavePaymentInfo 200
+    ✓ OpcConfirmOrder 200
+    ✓ CheckoutAttributeChange 200
+    ✓ OpcConfirmOrder retry 200
+    ✓ pedido confirmado
+    ✓ OpcConfirmOrder cooldown retry 200
+
+    HTTP
+    http_req_duration..............: avg=51.82ms min=8.85ms med=41.69ms max=1.59s  p(90)=74.01ms p(95)=83.16ms
+      { expected_response:true }...: avg=51.82ms min=8.85ms med=41.69ms max=1.59s  p(90)=74.01ms p(95)=83.16ms
+    http_req_failed................: 0.00%  0 out of 768
+    http_reqs......................: 768    6.100927/s
+
+    EXECUTION
+    iteration_duration.............: avg=10.49s  min=2.29s  med=13.76s  max=13.83s p(90)=13.81s  p(95)=13.83s
+    iterations.....................: 57     0.452803/s
+    vus............................: 1      min=1        max=6
+    vus_max........................: 6      min=6        max=6
+
+    NETWORK
+    data_received..................: 11 MB  90 kB/s
+    data_sent......................: 935 kB 7.4 kB/s
+
+
+
+
+running (2m05.9s), 0/6 VUs, 57 complete and 0 interrupted iterations
+checkout_flow ✓ [======================================] 0/6 VUs  2m0s
+PS D:\GitHub\AS\nopCommerce\loadtest>
