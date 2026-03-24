@@ -93,7 +93,7 @@ Decisões aplicadas:
 - Sem email, sem payload de pagamento, sem dados pessoais em tags
 
 Tradeoff:
-- A redação principal está no SDK
+- A redação principal está antes de enviar para o collector
 - Evolução recomendada: sanitização central no collector para defesa em profundidade
 
 ## 4. Stack de observabilidade
