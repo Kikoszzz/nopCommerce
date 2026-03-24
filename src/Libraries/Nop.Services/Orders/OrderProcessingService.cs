@@ -49,10 +49,8 @@ public partial class OrderProcessingService : IOrderProcessingService
     // Business-flow instrumentation for "place order" checkout.
     // NOTE: keep span attributes free of sensitive data (no PII / payment details).
     private static readonly ActivitySource CheckoutActivitySource = new("nopcommerce.checkout");
-    private readonly Histogram<double> _checkoutPaymentDurationMsHistogram;
     private readonly Counter<long> _checkoutOrderFailuresTotal;
     private readonly Counter<long> _checkoutOrdersTotal;
-    private readonly Histogram<long> _checkoutOrderItemsTotal;
 
     protected readonly CurrencySettings _currencySettings;
     protected readonly IAddressService _addressService;
@@ -208,10 +206,8 @@ public partial class OrderProcessingService : IOrderProcessingService
 
         // Initialize metrics from the IMeterFactory (this ensures proper linkage to MeterProvider)
         var checkoutMeter = meterFactory.Create("nopcommerce.checkout");
-        _checkoutPaymentDurationMsHistogram = checkoutMeter.CreateHistogram<double>("checkout_payment_duration_ms");
         _checkoutOrderFailuresTotal = checkoutMeter.CreateCounter<long>("checkout_order_failures_total");
         _checkoutOrdersTotal = checkoutMeter.CreateCounter<long>("checkout_orders_total");
-        _checkoutOrderItemsTotal = checkoutMeter.CreateHistogram<long>("checkout_order_items_total");
     }
 
     #endregion
@@ -1628,16 +1624,7 @@ public partial class OrderProcessingService : IOrderProcessingService
                 ProcessPaymentResult processPaymentResult;
                 using (CheckoutActivitySource.StartActivity("checkout.process_payment", ActivityKind.Internal))
                 {
-                    var sw = Stopwatch.StartNew();
                     processPaymentResult = await GetProcessPaymentResultAsync(processPaymentRequest, placeOrderContainer);
-                    sw.Stop();
-
-                    _checkoutPaymentDurationMsHistogram.Record(
-                        sw.Elapsed.TotalMilliseconds,
-                        new[]
-                        {
-                            new KeyValuePair<string, object>("payment_method", paymentMethod)
-                        });
                 }
 
                 processPaymentResult = processPaymentResult ?? throw new NopException("processPaymentResult is not available");
@@ -1665,14 +1652,6 @@ public partial class OrderProcessingService : IOrderProcessingService
                     {
                         await MoveShoppingCartItemsToOrderItemsAsync(placeOrderContainer, order);
                     }
-
-                    var orderItems = await _orderService.GetOrderItemsAsync(order.Id);
-                    _checkoutOrderItemsTotal.Record(
-                        orderItems.Count,
-                        new[]
-                        {
-                            new KeyValuePair<string, object>("store_id", order.StoreId)
-                        });
 
                     //discount usage history
                     await SaveDiscountUsageHistoryAsync(placeOrderContainer, order);
