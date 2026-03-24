@@ -41,6 +41,15 @@ function shouldInjectError() {
   return bucket < normalizedRate;
 }
 
+function shouldPreselectCheckoutAttributes() {
+  // Em modo sem erro, evita falhas de validacao de atributos obrigatorios (ex.: Gift Wrapping).
+  if (ERROR_MODE === "off") return true;
+
+  // Em modos de erro, usa a mesma taxa global de erro para decidir
+  // quando pre-seleciona atributos e quando deixa a validacao falhar.
+  return !shouldInjectError();
+}
+
 function isCooldownErrorModeActive() {
   return ERROR_MODE === "cooldown" || ERROR_MODE === "mixed";
 }
@@ -708,6 +717,11 @@ function runCheckoutOpc(token) {
     sectionHtml = currentJson.update_section && currentJson.update_section.html ? currentJson.update_section.html : "";
     token = updateTokenFromHtml(token, sectionHtml);
     sleep(effectiveThinkTimeSeconds);
+  }
+
+  if (shouldPreselectCheckoutAttributes()) {
+    // Tenta preencher atributos obrigatorios antes da confirmacao.
+    saveCheckoutAttributes(token, sectionHtml);
   }
 
   const postConfirmOrder = (checkLabel) => {

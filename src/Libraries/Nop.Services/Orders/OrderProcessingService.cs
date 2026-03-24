@@ -42,7 +42,7 @@ namespace Nop.Services.Orders;
 public partial class OrderProcessingService : IOrderProcessingService
 {
     // TEST ONLY: define false para reativar o cooldown entre pedidos.
-    private const bool DisableOrderCooldownForTests = false;
+    private const bool DisableOrderCooldownForTests = true;
 
     #region Fields
 
@@ -51,6 +51,7 @@ public partial class OrderProcessingService : IOrderProcessingService
     private static readonly ActivitySource CheckoutActivitySource = new("nopcommerce.checkout");
     private readonly Counter<long> _checkoutOrderFailuresTotal;
     private readonly Counter<long> _checkoutOrdersTotal;
+    private readonly Histogram<double> _checkoutPaymentDurationMs;
 
     protected readonly CurrencySettings _currencySettings;
     protected readonly IAddressService _addressService;
@@ -208,6 +209,7 @@ public partial class OrderProcessingService : IOrderProcessingService
         var checkoutMeter = meterFactory.Create("nopcommerce.checkout");
         _checkoutOrderFailuresTotal = checkoutMeter.CreateCounter<long>("checkout_order_failures_total");
         _checkoutOrdersTotal = checkoutMeter.CreateCounter<long>("checkout_orders_total");
+        _checkoutPaymentDurationMs = checkoutMeter.CreateHistogram<double>("checkout_payment_duration_ms");
     }
 
     #endregion
@@ -1417,10 +1419,14 @@ public partial class OrderProcessingService : IOrderProcessingService
     /// </returns>
     protected virtual async Task<ProcessPaymentResult> GetProcessPaymentResultAsync(ProcessPaymentRequest processPaymentRequest, PlaceOrderContainer details)
     {
+        var paymentMethodName = processPaymentRequest.PaymentMethodSystemName ?? "unknown";
+        var paymentRequired = await IsPaymentWorkflowRequiredAsync(details.Cart);
+        var paymentStopwatch = Stopwatch.StartNew();
+
         //process payment
         ProcessPaymentResult processPaymentResult;
         //check if is payment workflow required
-        if (await IsPaymentWorkflowRequiredAsync(details.Cart))
+        if (paymentRequired)
         {
             var customer = await _customerService.GetCustomerByIdAsync(processPaymentRequest.CustomerId);
             var paymentMethod = await _paymentPluginManager
@@ -1449,6 +1455,16 @@ public partial class OrderProcessingService : IOrderProcessingService
         else
             //payment is not required
             processPaymentResult = new ProcessPaymentResult { NewPaymentStatus = PaymentStatus.Paid };
+
+        _checkoutPaymentDurationMs.Record(
+            paymentStopwatch.Elapsed.TotalMilliseconds,
+            new[]
+            {
+                new KeyValuePair<string, object>("payment_method", paymentMethodName),
+                new KeyValuePair<string, object>("payment_required", paymentRequired),
+                new KeyValuePair<string, object>("is_recurring", details.IsRecurringShoppingCart)
+            });
+
         return processPaymentResult;
     }
 
