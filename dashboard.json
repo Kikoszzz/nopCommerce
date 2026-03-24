@@ -224,108 +224,6 @@
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
-            "lineStyle": {
-              "fill": "solid"
-            },
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "showValues": false,
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "ms"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 24,
-        "x": 0,
-        "y": 8
-      },
-      "id": 2,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "timezone": [
-          "browser"
-        ],
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.4.1",
-      "targets": [
-        {
-          "editorMode": "code",
-          "expr": "histogram_quantile(\r\n  0.95,\r\n  sum by (le) (\r\n    rate(checkout_payment_duration_ms_bucket[$__rate_interval])\r\n  )\r\n)",
-          "format": "time_series",
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Duração pagamento p95",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "efgas7ypd1edcd"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
             "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
@@ -359,7 +257,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 17
+        "y": 8
       },
       "id": 9,
       "options": {
@@ -450,7 +348,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 27
+        "y": 18
       },
       "id": 7,
       "options": {
@@ -546,7 +444,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 27
+        "y": 18
       },
       "id": 8,
       "options": {
@@ -608,7 +506,7 @@
         "h": 9,
         "w": 4,
         "x": 0,
-        "y": 35
+        "y": 26
       },
       "id": 3,
       "options": {
@@ -706,7 +604,7 @@
         "h": 9,
         "w": 20,
         "x": 4,
-        "y": 35
+        "y": 26
       },
       "id": 1,
       "options": {
@@ -748,13 +646,13 @@
     "list": []
   },
   "time": {
-    "from": "now-3m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Prometheus",
   "uid": "ad82nc9",
-  "version": 43,
+  "version": 45,
   "weekStart": ""
 }
