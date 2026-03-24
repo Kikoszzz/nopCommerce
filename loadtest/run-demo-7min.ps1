@@ -14,7 +14,10 @@ param(
     [string]$PaymentMethod = "Payments.Manual",
     [string]$ThinkTimeSeconds = "0.3",
     [string]$OrderRetryAttempts = "4",
-    [string]$OrderRetryBackoffSeconds = "3"
+    [string]$OrderRetryBackoffSeconds = "3",
+    [string]$ErrorMode = "mixed",
+    [string]$ErrorRate = "0.40",
+    [string]$ErrorFixedCredentialIndex = "1"
 )
 
 $env:BASE_URL = $BaseUrl
@@ -32,6 +35,9 @@ $env:PAYMENT_METHOD = $PaymentMethod
 $env:THINK_TIME_SECONDS = $ThinkTimeSeconds
 $env:ORDER_RETRY_ATTEMPTS = $OrderRetryAttempts
 $env:ORDER_RETRY_BACKOFF_SECONDS = $OrderRetryBackoffSeconds
+$env:ERROR_MODE = $ErrorMode
+$env:ERROR_RATE = $ErrorRate
+$env:ERROR_FIXED_CREDENTIAL_INDEX = $ErrorFixedCredentialIndex
 
 $credentialCount = 0
 if ($UserCredentials)
@@ -61,6 +67,7 @@ Write-Host "KNOWN_PROBLEM_USER=$KnownProblemUser" -ForegroundColor DarkYellow
 Write-Host "USER_CREDENTIALS=$env:USER_CREDENTIALS" -ForegroundColor DarkGray
 Write-Host "PRODUCT_ID=$env:PRODUCT_ID" -ForegroundColor DarkGray
 Write-Host "PAYMENT_METHOD=$env:PAYMENT_METHOD" -ForegroundColor DarkGray
+Write-Host "ERROR_MODE=$env:ERROR_MODE | ERROR_RATE=$env:ERROR_RATE | ERROR_FIXED_CREDENTIAL_INDEX=$env:ERROR_FIXED_CREDENTIAL_INDEX" -ForegroundColor DarkGray
 if ($credentialCount -gt 0)
 {
     Write-Host "USER_CREDENTIALS_COUNT=$credentialCount | TARGET_VUS=$targetVus" -ForegroundColor DarkGray

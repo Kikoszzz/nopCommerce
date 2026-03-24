@@ -19,6 +19,39 @@ const DB_RETRY_ATTEMPTS = Number(__ENV.DB_RETRY_ATTEMPTS || "3");
 const DB_RETRY_BACKOFF_SECONDS = Number(__ENV.DB_RETRY_BACKOFF_SECONDS || "0.4");
 const ORDER_RETRY_ATTEMPTS = Number(__ENV.ORDER_RETRY_ATTEMPTS || "4");
 const ORDER_RETRY_BACKOFF_SECONDS = Number(__ENV.ORDER_RETRY_BACKOFF_SECONDS || "3");
+const ERROR_MODE = (__ENV.ERROR_MODE || "off").toLowerCase(); // off | cooldown | mixed
+const ERROR_RATE = Number(__ENV.ERROR_RATE || "0.35");
+const ERROR_FIXED_CREDENTIAL_INDEX = Number(__ENV.ERROR_FIXED_CREDENTIAL_INDEX || "1");
+
+function clamp01(value) {
+  if (Number.isNaN(value)) return 0;
+  if (value < 0) return 0;
+  if (value > 1) return 1;
+  return value;
+}
+
+function shouldInjectError() {
+  if (ERROR_MODE === "off") return false;
+  const normalizedRate = clamp01(ERROR_RATE);
+  if (normalizedRate <= 0) return false;
+  if (normalizedRate >= 1) return true;
+
+  // Deterministico por VU/iteracao para manter distribuicao estavel entre execucoes.
+  const bucket = ((__VU * 7919 + __ITER * 104729) % 1000) / 1000;
+  return bucket < normalizedRate;
+}
+
+function isCooldownErrorModeActive() {
+  return ERROR_MODE === "cooldown" || ERROR_MODE === "mixed";
+}
+
+function getEffectiveThinkTimeSeconds() {
+  if (isCooldownErrorModeActive() && shouldInjectError()) {
+    return 0;
+  }
+
+  return THINK_TIME_SECONDS;
+}
 
 export const options = {
   scenarios: {
@@ -95,6 +128,12 @@ function getCurrentCredential() {
   const parsed = parseUserCredentials(USER_CREDENTIALS);
   if (parsed.length) {
     const vuId = exec.vu && exec.vu.idInTest ? exec.vu.idInTest : 1;
+    if (isCooldownErrorModeActive() && shouldInjectError()) {
+      const fixedIndex = Math.min(Math.max(ERROR_FIXED_CREDENTIAL_INDEX - 1, 0), parsed.length - 1);
+      const selected = parsed[fixedIndex];
+      return { ...selected, credentialIndex: fixedIndex + 1, credentialCount: parsed.length, vuId };
+    }
+
     const index = (vuId - 1) % parsed.length;
     const selected = parsed[index];
     return { ...selected, credentialIndex: index + 1, credentialCount: parsed.length, vuId };
@@ -478,6 +517,8 @@ function addProductToCart(token) {
 }
 
 function runCheckoutOpc(token) {
+  const effectiveThinkTimeSeconds = getEffectiveThinkTimeSeconds();
+
   let response = http.get(BASE_URL + "/onepagecheckout", { redirects: 0 });
 
   // Segue redirecionamentos manualmente para diagnosticar para onde o fluxo esta indo.
@@ -517,7 +558,7 @@ function runCheckoutOpc(token) {
     fail("Nao foi possivel determinar billing_address_id para usuario " + getCurrentLoginLabel() + " (" + getCurrentCredentialContextLabel() + "). Defina BILLING_ADDRESS_ID.");
   }
 
-  sleep(THINK_TIME_SECONDS);
+  sleep(effectiveThinkTimeSeconds);
 
   let billingRes = http.post(
     BASE_URL + "/checkout/OpcSaveBilling",
@@ -540,7 +581,7 @@ function runCheckoutOpc(token) {
     fail("OpcSaveBilling retornou erro: " + (billingJson.message || "sem mensagem"));
   }
 
-  sleep(THINK_TIME_SECONDS);
+  sleep(effectiveThinkTimeSeconds);
 
   let currentJson = billingJson;
 
@@ -569,7 +610,7 @@ function runCheckoutOpc(token) {
 
     sectionHtml = currentJson.update_section && currentJson.update_section.html ? currentJson.update_section.html : "";
     token = updateTokenFromHtml(token, sectionHtml);
-    sleep(THINK_TIME_SECONDS);
+    sleep(effectiveThinkTimeSeconds);
   }
 
   if (currentJson.goto_section === "shipping_method") {
@@ -613,7 +654,7 @@ function runCheckoutOpc(token) {
 
     sectionHtml = currentJson.update_section && currentJson.update_section.html ? currentJson.update_section.html : "";
     token = updateTokenFromHtml(token, sectionHtml);
-    sleep(THINK_TIME_SECONDS);
+    sleep(effectiveThinkTimeSeconds);
   }
 
   if (currentJson.goto_section === "payment_method") {
@@ -621,7 +662,7 @@ function runCheckoutOpc(token) {
 
     sectionHtml = currentJson.update_section && currentJson.update_section.html ? currentJson.update_section.html : "";
     token = updateTokenFromHtml(token, sectionHtml);
-    sleep(THINK_TIME_SECONDS);
+    sleep(effectiveThinkTimeSeconds);
   }
 
   if (currentJson.goto_section === "payment_info") {
@@ -666,7 +707,7 @@ function runCheckoutOpc(token) {
 
     sectionHtml = currentJson.update_section && currentJson.update_section.html ? currentJson.update_section.html : "";
     token = updateTokenFromHtml(token, sectionHtml);
-    sleep(THINK_TIME_SECONDS);
+    sleep(effectiveThinkTimeSeconds);
   }
 
   const postConfirmOrder = (checkLabel) => {
@@ -701,7 +742,8 @@ function runCheckoutOpc(token) {
   }
 
   if (!(finalConfirmJson.success === 1 || finalConfirmJson.success === true)) {
-    for (let attempt = 1; attempt <= ORDER_RETRY_ATTEMPTS; attempt++) {
+    const effectiveOrderRetryAttempts = isCooldownErrorModeActive() && shouldInjectError() ? 0 : ORDER_RETRY_ATTEMPTS;
+    for (let attempt = 1; attempt <= effectiveOrderRetryAttempts; attempt++) {
       const retryMsg = extractErrorMessage(finalConfirmJson);
       if (!isOrderCooldownMessage(retryMsg)) {
         break;
@@ -730,6 +772,11 @@ function runCheckoutOpc(token) {
 }
 
 export default function () {
+  if (__ITER === 0 && __VU === 1) {
+    console.log("[k6] ERROR_MODE=" + ERROR_MODE + ", ERROR_RATE=" + clamp01(ERROR_RATE));
+  }
+
+  const effectiveThinkTimeSeconds = getEffectiveThinkTimeSeconds();
   const home = http.get(BASE_URL + "/", { redirects: 0 });
   check(home, { "home respondeu": (r) => r.status === 200 || r.status === 302 });
 
@@ -739,5 +786,5 @@ export default function () {
   token = addProductToCart(token);
   runCheckoutOpc(token);
 
-  sleep(THINK_TIME_SECONDS);
+  sleep(effectiveThinkTimeSeconds);
 }

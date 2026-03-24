@@ -158,6 +158,51 @@ public partial class CheckoutController : BasePublicController
         return interval.TotalMinutes > _orderSettings.MinimumOrderPlacementInterval;
     }
 
+    protected virtual (string Reason, string ReasonDescription, string ExceptionType) ClassifyCheckoutFailure(Exception exc)
+    {
+        var exceptionType = exc?.GetType().Name ?? "UnknownException";
+        var message = exc?.Message;
+
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            var innerMessage = exc?.InnerException?.Message;
+            if (!string.IsNullOrWhiteSpace(innerMessage))
+                message = innerMessage;
+        }
+
+        if (string.IsNullOrWhiteSpace(message))
+            return ("exception", "Exception without message", exceptionType);
+
+        var normalized = message.Trim();
+        var normalizedLower = normalized.ToLowerInvariant();
+
+        if (normalizedLower.Contains("minimum order placement interval") ||
+            normalizedLower.Contains("please wait several seconds before placing a new order"))
+        {
+            return ("min_interval_blocked", "Minimum order placement interval blocked", exceptionType);
+        }
+
+        if (normalizedLower.Contains("your cart is empty"))
+            return ("cart_empty", "Your cart is empty", exceptionType);
+
+        if (normalizedLower.Contains("shipping total couldn't be calculated"))
+            return ("shipping_total_unavailable", "Shipping total couldn't be calculated", exceptionType);
+
+        if (normalizedLower.Contains("please select gift wrapping"))
+            return ("checkout_attribute_required", "Please select Gift wrapping", exceptionType);
+
+        if (normalizedLower.Contains("payment information is not entered"))
+            return ("payment_info_missing", "Payment information is not entered", exceptionType);
+
+        if (normalizedLower.Contains("anonymous checkout is not allowed"))
+            return ("anonymous_checkout_not_allowed", "Anonymous checkout is not allowed", exceptionType);
+
+        if (normalizedLower.Contains("deadlock victim") || normalizedLower.Contains("deadlocked on lock resources"))
+            return ("deadlock_victim", "Deadlock victim", exceptionType);
+
+        return ("exception", "Unhandled checkout exception", exceptionType);
+    }
+
     /// <summary>
     /// Parses the value indicating whether the "pickup in store" is allowed
     /// </summary>
@@ -1324,14 +1369,8 @@ public partial class CheckoutController : BasePublicController
                 using var activity = _checkoutActivitySource.StartActivity("checkout.place_order", ActivityKind.Internal);
                 activity?.SetTag("checkout.success", false);
                 activity?.SetTag("checkout.failure_reason", "min_interval_blocked");
+                activity?.SetTag("checkout.failure_reason_description", "Minimum order placement interval blocked");
                 activity?.SetStatus(ActivityStatusCode.Error, "Minimum order placement interval blocked");
-
-                CheckoutOrderFailuresTotal.Add(
-                    1,
-                    new[]
-                    {
-                        new KeyValuePair<string, object>("reason", "min_interval_blocked")
-                    });
 
                 throw new Exception(await _localizationService.GetResourceAsync("Checkout.MinOrderPlacementInterval"));
             }
@@ -2078,14 +2117,8 @@ public partial class CheckoutController : BasePublicController
                     using var activity = _checkoutActivitySource.StartActivity("checkout.place_order", ActivityKind.Internal);
                     activity?.SetTag("checkout.success", false);
                     activity?.SetTag("checkout.failure_reason", "min_interval_blocked");
+                    activity?.SetTag("checkout.failure_reason_description", "Minimum order placement interval blocked");
                     activity?.SetStatus(ActivityStatusCode.Error, "Minimum order placement interval blocked");
-
-                    CheckoutOrderFailuresTotal.Add(
-                        1,
-                        new[]
-                        {
-                            new KeyValuePair<string, object>("reason", "min_interval_blocked")
-                        });
 
                     throw new Exception(await _localizationService.GetResourceAsync("Checkout.MinOrderPlacementInterval"));
                 }
@@ -2158,6 +2191,24 @@ public partial class CheckoutController : BasePublicController
         }
         catch (Exception exc)
         {
+            var (reason, reasonDescription, exceptionType) = ClassifyCheckoutFailure(exc);
+
+            using var activity = _checkoutActivitySource.StartActivity("checkout.place_order", ActivityKind.Internal);
+            activity?.SetTag("checkout.success", false);
+            activity?.SetTag("checkout.failure_reason", reason);
+            activity?.SetTag("checkout.failure_reason_description", reasonDescription);
+            activity?.SetTag("checkout.failure_exception_type", exceptionType);
+            activity?.SetStatus(ActivityStatusCode.Error, reasonDescription);
+
+            CheckoutOrderFailuresTotal.Add(
+                1,
+                new[]
+                {
+                    new KeyValuePair<string, object>("reason", reason),
+                    new KeyValuePair<string, object>("reason_description", reasonDescription),
+                    new KeyValuePair<string, object>("exception_type", exceptionType)
+                });
+
             await _logger.WarningAsync(exc.Message, exc, await _workContext.GetCurrentCustomerAsync());
             return Json(new { error = 1, message = exc.Message });
         }

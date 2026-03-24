@@ -1721,7 +1721,8 @@ public partial class OrderProcessingService : IOrderProcessingService
                         1,
                         new[]
                         {
-                            new KeyValuePair<string, object>("reason", "payment_failed")
+                            new KeyValuePair<string, object>("reason", "payment_failed"),
+                            new KeyValuePair<string, object>("reason_description", "Payment processing failed")
                         });
 
                     rootActivity?.SetStatus(ActivityStatusCode.Error, paymentFailureMessage);
@@ -1739,7 +1740,9 @@ public partial class OrderProcessingService : IOrderProcessingService
                     1,
                     new[]
                     {
-                        new KeyValuePair<string, object>("reason", "exception")
+                        new KeyValuePair<string, object>("reason", "exception"),
+                        new KeyValuePair<string, object>("reason_description", "Unhandled checkout exception"),
+                        new KeyValuePair<string, object>("exception_type", exc.GetType().Name)
                     });
 
                 rootActivity?.SetStatus(ActivityStatusCode.Error, exc.Message);
@@ -1794,7 +1797,8 @@ public partial class OrderProcessingService : IOrderProcessingService
                     1,
                     new[]
                     {
-                        new KeyValuePair<string, object>("reason", "min_interval_blocked")
+                        new KeyValuePair<string, object>("reason", "min_interval_blocked"),
+                        new KeyValuePair<string, object>("reason_description", "Minimum order placement interval blocked")
                     });
                 rootActivity?.SetStatus(ActivityStatusCode.Error, errorMessage);
             }
