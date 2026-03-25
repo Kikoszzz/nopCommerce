@@ -15,8 +15,8 @@ param(
     [string]$ThinkTimeSeconds = "0.3",
     [string]$OrderRetryAttempts = "4",
     [string]$OrderRetryBackoffSeconds = "3",
-    [string]$ErrorMode = "off",
-    [string]$ErrorRate = "0",
+    [string]$ErrorMode = "mixed",
+    [string]$ErrorRate = "0.5",
     [string]$ErrorFixedCredentialIndex = "1"
 )
 

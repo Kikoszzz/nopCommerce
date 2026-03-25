@@ -73,7 +73,7 @@ flowchart LR
 - checkout.cart_add_item
 - checkout.cart_update_item
 
-### Métricas customizadas
+### Métricas
 
 - checkout_orders_total
 - checkout_order_failures_total
@@ -82,7 +82,7 @@ flowchart LR
 ### Justificação operacional
 
 1. checkout_orders_total + checkout_order_failures_total permitem calcular error rate real do pipeline de checkout.
-2. checkout_payment_duration_ms permite detetar degradação antes de falhas generalizadas.
+2. checkout_payment_duration_ms permite detetar degradação antes de falhas generalizadas em relação ao pagamento.
 
 ## 3. Estratégia de privacidade
 
@@ -93,8 +93,10 @@ Decisões aplicadas:
 - Sem email, sem payload de pagamento, sem dados pessoais em tags
 
 Tradeoff:
-- A redação principal está antes de enviar para o collector
-- Evolução recomendada: sanitização central no collector para defesa em profundidade
+- A redação principal está no SDK, antes de enviar para o collector
+
+Implementação futura:
+- Sanitização central no collector para defesa em profundidade
 
 ## 4. Stack de observabilidade
 
